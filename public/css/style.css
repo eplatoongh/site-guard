@@ -1,0 +1,37 @@
+html {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+:root {
+  --primary: rgb(244, 240, 248);
+  --secondary: rgb(124, 58, 237);
+  --white: #fff;
+  --extra-light-black: rgb(241, 245, 249);
+  --light-black: rgb(156, 163, 175);
+  --black: #303030;
+  --secondary-hover: rgba(6, 6, 7, 0.25);
+  --reportDone: unset;
+  --reportNotDone: #7c3aed29;
+  --transparent-blur-bg: rgba(124, 58, 237, 0.25);
+}
+
+body {
+  height: 100vh;
+  overflow-x: hidden;
+}
+
+.active {
+  background-color: var(--secondary) !important;
+  color: var(--white) !important;
+}
