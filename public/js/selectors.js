@@ -23,13 +23,23 @@ export const HTML = (sl, html) => (qs(sl).innerHTML = html);
 export const addHTML = (sl, html) => (qs(sl).innerHTML += html);
 export const submitLoaderStart = (e) => {
   let sel = e.querySelector('[type="submit"]');
-  let selTxt = sel.innerText;
 
-  sel.innerHTML = `${selTxt}ing..`;
+  let selTxt = sel.innerText;
+  if (selTxt == "Login") {
+    sel.innerHTML = `${selTxt}..`;
+  } else {
+    sel.innerHTML = `${selTxt}ing..`;
+  }
 };
 export const submitLoaderEnd = (e) => {
   let sel = e.querySelector('[type="submit"]');
-  let selTxt = sel.innerText.split("ing..");
+  let selTxt;
+
+  if (sel.innerText == "Login..") {
+    selTxt = sel.innerText.split("..");
+  } else {
+    selTxt = sel.innerText.split("ing..");
+  }
 
   sel.innerHTML = selTxt[0];
 };

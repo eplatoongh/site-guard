@@ -22,6 +22,10 @@ router.get("/work/get/:skip/:limit", (req, res) =>
 router.get("/name/guard/get/:nameData/:month", (req, res) =>
   adminFunctions.getGuardByName(req, res, Guard)
 );
+router.get(
+  "/client/guards/:clientName/:skip/:limit",
+  adminFunctions.getClientguards
+);
 //post
 router.post("/site/add", (req, res) => {
   adminFunctions.addData(req, res, Site);
@@ -33,6 +37,9 @@ router.post("/client/add", (req, res) => {
   adminFunctions.addData(req, res, Client);
 });
 router.post("/work/add", adminFunctions.workAdd);
+router.post("/if/client/exists", (req, res) =>
+  adminFunctions.ifExistsName(req, res, Client)
+);
 //delete
 router.delete("/data/site/delete/:id", (req, res) =>
   adminFunctions.deleteData(req, res, Site)

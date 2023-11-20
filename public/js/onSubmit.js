@@ -89,3 +89,25 @@ export const reportFormSubmit = async (e) => {
   submitLoaderEnd(e);
   winReload();
 };
+//client
+export const clientLoginFormSubmit = async (e, fn) => {
+  if (e.clientName.value != "") {
+    submitLoaderStart(e);
+    let res = await fetch("/admin/if/client/exists", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientName: e.clientName.value }),
+    });
+
+    if (res.status == 200) {
+      submitLoaderEnd(e);
+      return true;
+    } else {
+      alert(res.statusText);
+      submitLoaderEnd(e);
+      return false;
+    }
+  } else {
+    alert("Give a client name first!");
+  }
+};

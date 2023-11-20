@@ -51,6 +51,12 @@ adminFunctions.getGuardByName = async (req, res, Model) => {
 
   res.status(200).json(filteredTs1[0]);
 };
+adminFunctions.getClientguards = async (req, res) => {
+  let { clientName } = req.params;
+  let data = await Guard.find({ "works.clientName": clientName }, "guardName");
+
+  res.status(200).json(data);
+};
 //post
 adminFunctions.addData = async (req, res, Model) => {
   let data = await Model.findOne(req.body);
@@ -89,6 +95,15 @@ adminFunctions.workAdd = async (req, res) => {
     res.status(200).json({ done: 1 });
   } else {
     res.status(404).json(fObj);
+  }
+};
+adminFunctions.ifExistsName = async (req, res, Model) => {
+  let data = await Model.findOne(req.body);
+
+  if (data) {
+    res.status(200).json({ found: 1 });
+  } else {
+    res.status(404).json({ found: 0 });
   }
 };
 //delete

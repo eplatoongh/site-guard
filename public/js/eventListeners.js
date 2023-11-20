@@ -162,9 +162,14 @@ export const activeItems = async (itm, activateItems) => {
     itm.onSubmit(e.target);
   }
 };
+//client
 export const clientGuardEventListener = async (e) => {
   HTML(".data-content", loaderTemp());
-  let eachGuard = await getData("each-guard", e.target.dataset.guardName);
+  let eachGuard = await getData(
+    "each-guard",
+    e.target.dataset.guardName,
+    e.target.dataset.gMonth
+  );
   HTML(".data-content", guardReportTemp(eachGuard, "from-client"));
   on(".per-hour-input", "change", (e) => perHourInputEventListener(e));
   on(".per-hour-input", "keyup", (e) => perHourInputEventListener(e));

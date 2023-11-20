@@ -256,7 +256,7 @@ export const guardReportTemp = (obj, from) => {
     <div class="p-4 grid gap-4 report-data">
       ${
         obj.data.length > 0
-          ? eachGuardReportCardTemp(obj.data)
+          ? eachGuardReportCardTemp(obj.data, from ? from : null)
           : noDataFoundTemp()
       }       
     </div>      
@@ -270,13 +270,9 @@ export const eachGuardReportCardTemp = (data, from) => `
         `
     <div class="border px-4 py-2 ${
       from ? "" : `cursor-pointer`
-    } each-guard-report-card ${
-          from
-            ? ""
-            : `bg-[var(${
-                dataObj.reportLeft ? `--reportNotDone` : `--reportDone`
-              })]`
-        }" data-each-guard-report-card='${JSON.stringify(dataObj)}'>
+    } each-guard-report-card bg-[var(${
+          dataObj.reportLeft ? `--reportNotDone` : `--reportDone`
+        })]" data-each-guard-report-card='${JSON.stringify(dataObj)}'>
       <div class="pointer-events-none">
         <p class="text-[var(--light-black)] text-lg">
         ${dataObj.date} | ${dataObj.clientName} ${
@@ -312,11 +308,22 @@ export const clientGuardSelectTemp = () => `
 export const clientGuardCardTemp = (obj) => `
   <div
     data-guard-name="${obj.guardName}"
+    data-g-month="${`${new Date().getFullYear()}-${new Date().getMonth() + 1}`}"
     class="client-gurad cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--extra-light-black)] transition-colors"
   >
     <div class="pointer-events-none">
       <p class="font-medium text-[var(--black)]">${obj.guardName}</p>
-      <p class="font-medium text-sm">${obj.month}</p>
     </div>
   </div>
+`;
+export const clientLoginFormTemp = () => `
+        <div class="client-login-form-container w-[100%] h-[100vh] bg-[var(--white)] grid place-content-center">
+          <form class="client-login-form shadow-md px-4 py-2 grid gap-2">
+            <div>
+              <input type="text" name="clientName" class="p-2 border border-[var(--secondary)]" placeholder="Client name"/>
+            </div>
+
+            <button type="submit" class="py-2 bg-[var(--secondary)] text-[var(--white)] font-medium cursor-pointer">Login</button>
+          </form>
+        </div>
 `;

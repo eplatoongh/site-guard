@@ -1,4 +1,4 @@
-export const getData = async (type, additionalData, month) => {
+export const getData = async (type, additionalData, month, clientName) => {
   let promise = new Promise(async (resolve, reject) => {
     let array = [];
 
@@ -39,6 +39,11 @@ export const getData = async (type, additionalData, month) => {
           }
         }),
       };
+    }
+
+    if (type == "client-guards") {
+      let res = await fetch(`/admin/client/guards/${clientName}/0/10`);
+      array = await res.json();
     }
 
     resolve(array);
