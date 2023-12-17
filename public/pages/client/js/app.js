@@ -28,7 +28,7 @@ async function showClientDashboard(clientName) {
   HTML(".data-content", clientGuardSelectTemp());
 
   qsa(".client-gurad").forEach((itm) =>
-    onN(itm, "click", (e) => clientGuardEventListener(e))
+    onN(itm, "click", (e) => clientGuardEventListener(e, clientName))
   );
 }
 

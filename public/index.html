@@ -18,10 +18,18 @@
         </div>
 
         <ul class="px-2 py-5 grid gap-2 controls">
+          <!--
+            <li
+              class="site-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors active"
+            >
+              Sites
+            </li>
+          -->
+
           <li
-            class="site-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors active"
+            class="client-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors"
           >
-            Sites
+            Clients
           </li>
           <li
             class="guard-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors"
@@ -29,43 +37,24 @@
             Guards
           </li>
           <li
-            class="client-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors"
-          >
-            Clients
-          </li>
-          <li
             class="assign-work-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors"
           >
             Assign works
+          </li>
+          <li
+            class="schedule-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors"
+          >
+            Schedule
           </li>
         </ul>
       </div>
 
       <div class="relative left-bar w-full flex flex-col gap-4">
-        <div
-          class="flex justify-end search-bar sticky top-0 w-full p-2 backdrop-blur-sm"
-        >
-          <form class="flex">
-            <input
-              type="text"
-              name="siteNameSearch"
-              placeholder="Site name.."
-              class="border px-4 py-2 text-sm"
-            />
-            <button
-              type="submit"
-              class="bg-[var(--secondary)] text-[var(--white)] px-4 py-2 font-medium text-sm"
-            >
-              Search
-            </button>
-          </form>
-        </div>
-
         <div class="data-content p-2 flex flex-col gap-4 flex-auto"></div>
       </div>
 
       <div
-        class="flex flex-col justify-between px-4 py-2 right-bar sticky top-0 bg-[var(--primary)] w-[340px] h-[100vh]"
+        class="flex flex-col justify-between px-4 py-2 right-bar sticky top-0 bg-[var(--primary)] w-[340px] h-[100vh] transition-all"
       >
         <div class="border-b-2 border-[var(--light-black)] pb-2">
           <p class="font-medium text-[var(--black)] text-xl">Input controls</p>

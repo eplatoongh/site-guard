@@ -1,3 +1,4 @@
+import { generateDates } from "./functions.js";
 import { submitLoaderEnd, submitLoaderStart } from "./selectors.js";
 
 async function addNameToDB(url, data) {
@@ -20,71 +21,106 @@ async function addNameToDB(url, data) {
 function winReload() {
   window.location.reload();
 }
+function getObjByName(This) {
+  const formData = new FormData(This); // 'this' refers to the form element
+  const formValues = {};
 
-export const siteFormSubmit = async (e) => {
+  for (const [name, value] of formData.entries()) {
+    if (name == "repeatShift") {
+      formValues[name] = Array.from(This.repeatShift.selectedOptions).map(
+        (opt) => opt.value
+      );
+    } else {
+      formValues[name] = value;
+    }
+  }
+  return formValues;
+}
+
+export const siteFormSubmit = async (e, This) => {
   submitLoaderStart(e);
-
-  let obj = {
-    siteName: e.siteName && e.siteName.value,
-  };
-
+  let obj = getObjByName(This);
   await addNameToDB(`/admin/site/add`, obj);
-
   submitLoaderEnd(e);
 };
-export const guardFormSubmit = async (e) => {
+export const clientFormSubmit = async (e, This) => {
   submitLoaderStart(e);
-
-  let obj = {
-    guardName: e.guardName && e.guardName.value,
-  };
-
-  await addNameToDB(`/admin/guard/add`, obj);
-  submitLoaderEnd(e);
-};
-export const clientFormSubmit = async (e) => {
-  submitLoaderStart(e);
-
-  let obj = {
-    clientName: e.clientName && e.clientName.value,
-  };
-
+  let obj = getObjByName(This);
   await addNameToDB(`/admin/client/add`, obj);
   submitLoaderEnd(e);
 };
-export const assignWorkFormSubmit = async (e) => {
+export const guardFormSubmit = async (e, This) => {
   submitLoaderStart(e);
-
-  let obj = {
-    siteName: e.siteName && e.siteName.value,
-    guardName: e.guardName && e.guardName.value,
-    clientName: e.clientName && e.clientName.value,
-    shift: e.shift && e.shift.value,
-    date: e.date && e.date.value,
-    startTime: e.startTime && e.startTime.value,
-    endTime: e.endTime && e.endTime.value,
-  };
-
-  await addNameToDB(`/admin/work/add`, obj);
+  let obj = getObjByName(This);
+  await addNameToDB(`/admin/guard/add`, obj);
   submitLoaderEnd(e);
 };
-export const reportFormSubmit = async (e) => {
+export const assignWorkFormSubmit = async (e, This) => {
+  function getNameDatasetObj(str) {
+    return Array.from(This[str].children).filter(
+      (opt) => opt.value == This[str].value
+    )[0].dataset;
+  }
+  let guardName = getNameDatasetObj("guardID").guardName;
+  let contact = getNameDatasetObj("guardID").contact;
+  let address = getNameDatasetObj("guardID").address;
+  let postSite = getNameDatasetObj("postSiteID").postSite;
+  let clientName = getNameDatasetObj("clientID").clientName;
+
   submitLoaderStart(e);
+  let obj = getObjByName(This);
+  let { repeatShift, repeatFor, ...scheduleObj } = obj;
 
-  let obj = {
-    guardName: e.guardName && e.guardName.value,
-    workId: e.workId && e.workId.value,
-    date: e.date && e.date.value,
-    shift: e.shift && e.shift.value,
-    totalWorked: e.totalWorked && e.totalWorked.value,
-  };
+  // Example usage:
+  const weekDays = repeatShift; // Weekdays to retrieve
+  const startDate = new Date().toISOString().slice(0, 10);
+  const repeatFormat = repeatFor; // Change this to "2m" for 2 months
 
+  const resultDates = generateDates(weekDays, startDate, repeatFormat);
+  const Schedule = resultDates.map((itm) => ({
+    ...scheduleObj,
+    workDate: itm,
+    guardName,
+    postSite,
+    clientName,
+    contact,
+    address,
+  }));
+
+  for (let i = 0; i < Schedule.length; i++) {
+    const obj = Schedule[i];
+    await fetch(`/admin/schedule/add`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(obj),
+    });
+  }
+
+  submitLoaderEnd(e);
+  winReload();
+};
+export const reportFormSubmit = async (e, This) => {
+  submitLoaderStart(e);
+  let obj = getObjByName(This);
   await fetch(`/admin/guard/report/update`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(obj),
+  });
+  submitLoaderEnd(e);
+  winReload();
+};
+export const addPostSiteFormSubmit = async (e, This) => {
+  submitLoaderStart(e);
+  let obj = getObjByName(This);
+  await fetch(`/admin/update/client/add/post/site`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id: This.dataset.postSiteAddForm, obj }),
   });
   submitLoaderEnd(e);
   winReload();

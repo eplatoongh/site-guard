@@ -6,8 +6,21 @@ export const removeOn = (sl, ev, f) =>
   document.querySelector(sl).removeEventListener(ev, f);
 export const qsa = (sl) => document.querySelectorAll(sl);
 export const css = (sl, obj) => Object.assign(qs(sl).style, obj);
-export const addC = (sl, str) => qs(sl).classList.add(str);
-export const removeC = (sl, str) => qs(sl).classList.remove(str);
+export const addC = (sl, str) => {
+  str.split(" ").forEach((itm) => {
+    qs(sl).classList.add(itm);
+  });
+};
+export const addCN = (node, str) => {
+  str.split(" ").forEach((itm) => {
+    node.classList.add(itm);
+  });
+};
+export const removeC = (sl, str) => {
+  str.split(" ").forEach((itm) => {
+    qs(sl).classList.remove(itm);
+  });
+};
 export const addCa = (sl, str) =>
   qsa(sl).forEach((dom) => dom.classList.add(str));
 export const removeCa = (sl, str) =>
@@ -42,4 +55,13 @@ export const submitLoaderEnd = (e) => {
   }
 
   sel.innerHTML = selTxt[0];
+};
+export const getCurrentDate = (jsDate) => {
+  const now = jsDate;
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Adding 1 as month index starts from 0
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 };

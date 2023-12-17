@@ -1,3 +1,6 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
 const express = require("express");
 const app = express();
 const port = process.env.PORT || "3000";
@@ -11,6 +14,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const { checkUser, requireAuth } = require("./middlewares/auth");
+const Client = require("./models/admin/Client");
 
 //view engine setup
 app.set("view engine", `ejs`);

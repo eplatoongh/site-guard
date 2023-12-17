@@ -1,18 +1,27 @@
 import {
+  addPostSiteFormTemp,
+  clientPanelTemp,
   deleteBoxTemp,
   eachGuardReportCardTemp,
+  guardLiProfileTemp,
   guardReportTemp,
+  guardsOptions,
   loaderTemp,
   noDataFoundTemp,
+  postSiteOptions,
   reportFormTemp,
+  selectPostSiteTemp,
+  selectedPostSitePanel,
 } from "./components.js";
 import { getData } from "./fetch.js";
 import { printCard } from "./functions.js";
-import { reportFormSubmit } from "./onSubmit.js";
+import { addPostSiteFormSubmit, reportFormSubmit } from "./onSubmit.js";
 import {
   HTML,
   addC,
+  addCN,
   addHTML,
+  getCurrentDate,
   on,
   onN,
   qs,
@@ -24,6 +33,96 @@ import {
 } from "./selectors.js";
 import { loaderItems } from "./vars.js";
 
+const selectPostSiteEventListener = (e, data) => {
+  if (e.target.value != "none") {
+    let c1 = data.filter(
+      (obj) => obj._id == qs("[data-select-client-name]").value
+    );
+
+    let p1 = c1[0].postSites.filter(
+      (obj) => obj._id == qs("[data-select-post-site]").value
+    );
+
+    HTML("[data-select-guard]", guardsOptions(p1[0].guards));
+  }
+};
+const postSiteGuardLiEventListener = async (e) => {
+  removeCa("[data-post-site-guard]", "active");
+  addCN(e.target, "active");
+
+  HTML("[data-guard-li-profile]", loaderTemp("p-4"));
+
+  let postSiteGuardProfile = JSON.parse(e.target.dataset.guardProfile);
+
+  setTimeout(() => {
+    HTML("[data-guard-li-profile]", guardLiProfileTemp(postSiteGuardProfile));
+  }, 200);
+};
+const selectClientNameEventListener = (e, data, sl) => {
+  HTML(
+    "[data-select-post-site]",
+    postSiteOptions(
+      data.filter((itm) => itm._id == e.target.value)[0].postSites
+    )
+  );
+
+  HTML("[data-select-guard]", "");
+
+  if (sl == ".assign-work-li") {
+    on("[data-select-post-site]", "change", (e) => {
+      selectPostSiteEventListener(e, data);
+    });
+  }
+};
+const postSiteSelectEventListener = async (e) => {
+  removeCa("[data-post-site]", "active");
+  addCN(e.target, "active");
+
+  HTML("[data-selected-post-site-info]", loaderTemp("p-4"));
+
+  let postSiteProfile = JSON.parse(e.target.dataset.postSiteProfile);
+
+  HTML(
+    "[data-selected-post-site-info]",
+    selectedPostSitePanel(postSiteProfile)
+  );
+  qsa("[data-post-site-guard]").forEach((itm, i, pn) => {
+    onN(itm, "click", (e) => {
+      postSiteGuardLiEventListener(e);
+    });
+  });
+};
+const addPostSiteEventListener = (e) => {
+  HTML(".input-forms", loaderTemp());
+
+  setTimeout(() => {
+    HTML(".input-forms", addPostSiteFormTemp(e.target.dataset.btnId));
+    on("[data-post-site-add-form]", "submit", function (e) {
+      e.preventDefault();
+      addPostSiteFormSubmit(e.target, this);
+    });
+  }, 200);
+
+  removeC(".right-bar", "w-[0px] px-0 py-0");
+};
+const clientCardEventListen = async (e) => {
+  HTML(".input-forms", "");
+  addC(".right-bar", "w-[0px] px-0 py-0");
+
+  HTML(".data-content", loaderTemp());
+  let data = await getData("get-a-client", e.target.dataset.clientCard);
+
+  HTML(".data-content", clientPanelTemp(data));
+
+  on("[data-btn-id]", "click", (e) => addPostSiteEventListener(e));
+
+  if (qsa("[data-post-site]").length > 0) {
+    qsa("[data-post-site]").forEach((itm) =>
+      onN(itm, "click", (e) => postSiteSelectEventListener(e))
+    );
+  }
+  HTML("[data-selected-post-site-info]", selectPostSiteTemp());
+};
 const perHourInputEventListener = (e) => {
   HTML(".salary-amount", e.target.dataset.totalHour * e.target.value);
 };
@@ -125,20 +224,21 @@ const reportCardEventListen = (e) => {
 };
 
 export const activeItems = async (itm, activateItems) => {
+  let assignInputPanelWidth = "w-[700px]";
   removeC(".data-content", "h-px");
+  removeC(".right-bar", `${assignInputPanelWidth} w-[0px] px-0 py-0`);
+
   itm.temp && loaderItems.forEach((itm) => HTML(itm, loaderTemp()));
   !itm.temp && HTML(".data-content", loaderTemp());
   !itm.temp && HTML(".input-forms", "");
+
   removeCa(".controls li", "active");
   addC(itm.sl, "active");
 
   let data = await getData(itm.sl);
   printCard(".data-content", data, itm.sl);
-  !qsa(".report-card").length <= 0 &&
-    qsa(".report-card").forEach((itm) =>
-      onN(itm, "click", (e) => reportCardEventListen(e))
-    );
 
+  //for delete buttons
   if (!qsa(".del-btn").length <= 0) {
     qsa(".del-btn").forEach((itm) =>
       removeOnN(itm, "click", (e) => deleteBtnEventListen(e))
@@ -150,27 +250,98 @@ export const activeItems = async (itm, activateItems) => {
     );
   }
 
+  if (!qsa("[data-client-card]").length <= 0) {
+    qsa("[data-client-card]").forEach((itm) =>
+      onN(itm, "click", (e) => clientCardEventListen(e))
+    );
+  }
+
+  if (itm.sl == ".assign-work-li") {
+    addC(".right-bar", assignInputPanelWidth);
+  }
+
   activateItems.forEach(
     (el) => qs(el.formSl) && removeOn(el.formSl, "submit", listen)
   );
 
-  itm.temp && HTML(".input-forms", itm.temp(data));
+  let clientPosts;
+  clientPosts = await getData("load-clients-with-their-post-sites");
+
+  itm.temp &&
+    HTML(
+      ".input-forms",
+      itm.temp(
+        itm.sl == ".guard-li" || itm.sl == ".assign-work-li"
+          ? clientPosts
+          : data,
+        itm.sl == ".assign-work-li" ? getCurrentDate(new Date()) : null
+      )
+    );
+  itm.sl == ".guard-li" &&
+    on("[data-select-client-name]", "change", (e) =>
+      selectClientNameEventListener(e, clientPosts)
+    );
+  if (itm.sl == ".assign-work-li") {
+    on("[data-select-client-name]", "change", (e) => {
+      selectClientNameEventListener(e, clientPosts, itm.sl);
+    });
+    on("[data-select-post-site]", "change", (e) => {
+      selectPostSiteEventListener(e, clientPosts);
+    });
+  }
+
   itm.formSl && on(itm.formSl, "submit", listen);
 
   function listen(e) {
     e.preventDefault();
-    itm.onSubmit(e.target);
+    itm.onSubmit(e.target, this);
+  }
+
+  if (itm.sl == ".schedule-li") {
+    addC(".right-bar", `w-[0px] px-0 py-0`);
   }
 };
 //client
-export const clientGuardEventListener = async (e) => {
+export const clientGuardEventListener = async (e, clientName) => {
   HTML(".data-content", loaderTemp());
   let eachGuard = await getData(
-    "each-guard",
+    "client-each-guard",
     e.target.dataset.guardName,
-    e.target.dataset.gMonth
+    e.target.dataset.gMonth,
+    clientName
   );
   HTML(".data-content", guardReportTemp(eachGuard, "from-client"));
   on(".per-hour-input", "change", (e) => perHourInputEventListener(e));
   on(".per-hour-input", "keyup", (e) => perHourInputEventListener(e));
+
+  async function inputMonthEventListener(ev) {
+    HTML(".report-data", loaderTemp());
+
+    let obj = await getData(
+      "client-each-guard",
+      e.target.dataset.guardName,
+      ev.target.value,
+      clientName
+    );
+
+    obj.data.length == 0 && HTML(".report-data", noDataFoundTemp());
+    if (obj.data.length > 0) {
+      HTML(".report-data", eachGuardReportCardTemp(obj.data, "from-client"));
+
+      let totalHourNumber = obj.data.reduce((acc, dataObj) => {
+        if (!isNaN(dataObj.totalWorked)) {
+          acc += Number(dataObj.totalWorked);
+          return acc;
+        } else {
+          return acc;
+        }
+      }, 0);
+
+      HTML(".total-hour-span", totalHourNumber);
+      qs("[data-total-hour]").dataset.totalHour = totalHourNumber;
+      HTML(".salary-amount", `${totalHourNumber * 10}`);
+    }
+  }
+
+  on(".input-month", "change", inputMonthEventListener);
 };
