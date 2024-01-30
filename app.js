@@ -43,7 +43,8 @@ app.use("/admin", adminRoutes);
 app.use(express.static("public"));
 
 //dbURI
-const dbURI = `mongodb://localhost:27017/site-guard`;
+//const dbURI = `mongodb://localhost:27017/site-guard`;
+const dbURI = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.bsozzxj.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`; //
 const dbURIoptions = {};
 //connection function
 (async () => {
