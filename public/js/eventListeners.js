@@ -300,6 +300,10 @@ export const activeItems = async (itm, activateItems) => {
   if (itm.sl == ".schedule-li") {
     addC(".right-bar", `w-[0px] px-0 py-0`);
   }
+
+  if (itm.sl == ".track-guards-li") {
+    addC(".right-bar", `w-[0px] px-0 py-0`);
+  }
 };
 //client
 export const clientGuardEventListener = async (e, clientName) => {

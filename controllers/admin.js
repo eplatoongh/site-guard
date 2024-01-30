@@ -260,7 +260,7 @@ adminFunctions.ifExistsName = async (req, res, Model) => {
   let data = await Model.findOne(req.body);
 
   if (data) {
-    res.status(200).json({ found: 1 });
+    res.status(200).json({ found: 1, id: data._id });
   } else {
     res.status(404).json({ found: 0 });
   }
@@ -281,6 +281,24 @@ adminFunctions.scheduleAdd = async (req, res) => {
   await Schedule.create(req.body);
 
   res.status(200).json({ done: 1 });
+};
+adminFunctions.scheduleWorkDone = async (req, res) => {
+  await Schedule.findByIdAndUpdate(req.body.id, { workDone: req.body.done });
+
+  res.status(200).json({ done: 1 });
+};
+adminFunctions.clientReport = async (req, res) => {
+  let data = await Schedule.find(
+    {
+      postSiteID: req.body.postSiteID,
+      guardID: req.body.guardID,
+      workDate: { $gte: req.body.startDate, $lte: req.body.endDate },
+      workDone: true,
+    },
+    "totalHour workDone workDate"
+  ).sort({ createdAt: -1 });
+
+  res.status(200).json(data);
 };
 //delete
 adminFunctions.deleteData = async (req, res, Model, type) => {
@@ -327,6 +345,17 @@ adminFunctions.updateClientAddPostSite = async (req, res) => {
       $push: { postSites: req.body.obj },
     }
   );
+
+  res.status(200).json({ done: 1 });
+};
+adminFunctions.updateTimeReport = async (req, res) => {
+  await Schedule.findByIdAndUpdate(req.body.id, {
+    $set: {
+      startTime: req.body.startTime,
+      endTime: req.body.endTime,
+      totalHour: req.body.totalHour,
+    },
+  });
 
   res.status(200).json({ done: 1 });
 };

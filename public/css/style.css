@@ -35,3 +35,9 @@ body {
   background-color: var(--secondary) !important;
   color: var(--white) !important;
 }
+
+mark {
+  background-color: var(--secondary);
+  color: var(--white);
+  padding: 0.2rem;
+}

@@ -1,4 +1,12 @@
-import { on, qs } from "./selectors.js";
+import {
+  calculateTotalHours,
+  calculateTotalHoursAsync,
+  dotAnimation,
+  getCurrentDayHighlighted,
+} from "./functions.js";
+import { HTML, addC, on, onN, qs, qsa, removeC } from "./selectors.js";
+
+const cpySiteAddress = "https://guard-track-site-guard.netlify.app";
 
 export const loaderTemp = (p4) =>
   `<p class="${
@@ -681,24 +689,170 @@ export const clientPanelTemp = (data) => {
 };
 
 export const scheduleCard = (dom, data) => {
-  data.forEach((obj) => {
-    dom.innerHTML += `
-      <div class="shadow-md px-4 py-2 border cursor-pointer flex justify-between">
-        <div>
-          <p class="text-md text-[var(--black)]">${obj.guardName}</p>
-          <div class="text-sm text-[var(--light-black)] flex gap-2">
-            <p>${obj.clientName},</p> 
-            <p>${obj.postSite}</p>
+  const btn = `px-2 py-1 border`;
+  const doDom = new Promise((resolve, reject) => {
+    data.forEach((obj, i) => {
+      dom.innerHTML += `
+        <div 
+          data-schedule-id="${obj._id}" 
+          class="shadow-sm px-4 py-2 border flex justify-between"
+        >
+          <div>
+            <p class="text-md text-[var(--black)] flex gap-2 items-center">
+              ${obj.guardName} | 
+
+              <span class="p-2 border flex gap-2 text-xs">
+                <input 
+                  type="time"
+                  value="${obj.startTime}" 
+                  data-time-input 
+                  data-time-start
+                /> 
+                - 
+                <input 
+                  type="time" 
+                  value="${obj.endTime}" 
+                  data-time-input
+                  data-time-end
+                />
+              </span> | 
+
+              <span data-show-hr>${obj.totalHour}hr</span> | 
+
+              <span 
+                  class="flex items-center gap-1"
+              >
+                Track link: ${cpySiteAddress}?id=${obj._id} 
+                <button 
+                  data-cpy="${cpySiteAddress}?id=${obj._id}"
+                  class="p-1 text-xs border bg-[var(--secondary)] text-[var(--white)]"
+                >
+                  copy
+                </button>
+              </span>
+            </p>
+  
+            <div class="text-sm text-[var(--light-black)] grid gap-2">
+              <div class="flex gap-2">
+                <p>${obj.clientName},</p>
+                <p>${obj.postSite}</p>
+              </div>
+  
+              <p>${getCurrentDayHighlighted(obj.repeatShift)}</p>
+            </div>
+          </div>
+          
+          <div class="text-sm text-[var(--light-black)] grid gap-2">
+            <p>
+              <span>${obj.contact}</span> | <span>${obj.address}</span>
+            </p>
+  
+            <div class="flex gap-2 items-center" data-work-btn-container>
+              <button
+              data-work-done 
+                class="${btn} ${obj.workDone ? `active` : ``}"
+              >
+                Done
+              </button>
+              
+              <button
+              data-work-not-done 
+              class="${btn} ${obj.workDone ? `` : `active`}"
+              >
+                Not Done
+              </button>
+            </div>
           </div>
         </div>
-        
-        <di class="text-sm text-[var(--light-black)]">
-          <p>${obj.contact}</p>
-          <p>${obj.address}</p>
-        </di>
-      </div>
-    `;
+      `;
+
+      if (i + 1 == data.length) {
+        resolve(true);
+      }
+    });
   });
+
+  const doneFetch = async (data, sl, tx) => {
+    dotAnimation.start(sl, 150);
+
+    await fetch(`/admin/worker/schedule/work/done`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    dotAnimation.stop();
+    sl.textContent = tx;
+    sl.classList.add("active");
+  };
+
+  (async () => {
+    let res = await doDom;
+    if (res) {
+      Array.from(qs("[data-work-btn-container]").children).forEach((btn) => {
+        onN(btn, "click", async (e) => {
+          Array.from(qs("[data-work-btn-container]").children).forEach((btn) =>
+            btn.classList.remove("active")
+          );
+
+          const id = btn.closest("[data-schedule-id]").dataset.scheduleId;
+
+          if (Object.keys(e.target.dataset).includes("workDone")) {
+            doneFetch({ id, done: true }, btn, "Done");
+          } else {
+            doneFetch({ id, done: false }, btn, "Not Done");
+          }
+        });
+      });
+
+      qsa("[data-time-input]").forEach((timeInput) => {
+        onN(timeInput, "change", async (e) => {
+          const scheduleBox = e.target.closest("[data-schedule-id]");
+          let scheduleId = scheduleBox.dataset.scheduleId;
+          const inside = (sl) => scheduleBox.querySelector(sl);
+          let timeStartVal = inside("[data-time-start]").value;
+          let timeEndVal = inside("[data-time-end]").value;
+          let guardTotalHr = calculateTotalHours(timeStartVal, timeEndVal);
+
+          dotAnimation.start(qs("[data-show-hr]"), 150);
+          await fetch(`/admin/guard/time/report/update`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: scheduleId,
+              startTime: timeStartVal,
+              endTime: timeEndVal,
+              totalHour: guardTotalHr,
+            }),
+          });
+          dotAnimation.stop();
+          qs("[data-show-hr]").textContent = `${guardTotalHr}hr`;
+        });
+      });
+
+      function copyDataAttributes() {
+        const copyBtn = qs("[data-cpy]");
+
+        // Get the value from the data attribute
+        const valueToCopy = copyBtn.dataset.cpy;
+
+        navigator.clipboard
+          .writeText(valueToCopy)
+          .then(() => {
+            // Inform the user that the value has been copied
+            alert("Copied: " + valueToCopy);
+          })
+          .catch((err) => {
+            console.error("Failed to copy:", err);
+          });
+      }
+
+      // Add click event listener to the button
+      on("[data-cpy]", "click", copyDataAttributes);
+    }
+  })();
 };
 export const schedulePanelTemp = (dom) => {
   dom.innerHTML = `
@@ -707,24 +861,156 @@ export const schedulePanelTemp = (dom) => {
       <input type="date" class="schedule-date-input border p-2 text-sm" />
     </div>
 
-    <div data-schedule-list class="grid gap-2">
+    <div data-schedule-list class="grid gap-4 py-4">
       ${selectDateTemp()}
     </div>
   </div>
   `;
 
   on(".schedule-date-input", "change", async (e) => {
+    const listContainer = qs("[data-schedule-list]");
+    listContainer.innerHTML = loaderTemp();
     //send the date to back-end and get the assined workers, of that date from the db
 
     let res = await fetch(`/admin/schedule/get/${e.target.value}/0/10`);
     let data = await res.json();
     console.log(data);
 
-    scheduleCard(qs("[data-schedule-list]"), data);
+    listContainer.innerHTML = ``;
+    scheduleCard(listContainer, data);
+    data.length == 0 && (listContainer.innerHTML = noDataFoundTemp());
   });
+};
+export const trackGuardsPanelTemp = (dom) => {
+  dom.innerHTML = `
+  <div>
+    <div class="flex justify-end">
+      <input data-track-input type="text" class="border p-2 text-sm" placeholder="please enter a track link!" />
+      <button data-track-btn class="px-4 py-2 border bg-[var(--secondary)] text-[var(--white)]">track</button>
+    </div>
+
+    <div data-schedule-list class="grid gap-4 py-4">
+      <div data-temp-load></div>      
+    </div>
+  </div>
+  `;
+
+  let tracked = false;
+  on("[data-track-btn]", "click", () => {
+    let val = qs("[data-track-input]").value;
+
+    if (val != "") {
+      tracked = false;
+      HTML("[data-schedule-list]", loaderTemp());
+
+      let ioVal = val.split("?")[1].split("=")[1].trim();
+      const socket = io();
+
+      // Connect to the Socket.IO server
+
+      socket.emit("btnClicked", { send: ioVal });
+
+      // Handling received messages
+      socket.on("chat message", (msg) => {
+        let obj = JSON.parse(msg);
+        console.log(obj);
+
+        if (obj) {
+          console.log(obj.from, ioVal);
+
+          if (obj.from == ioVal) {
+            tracked = true;
+            locationMap(obj);
+          }
+          // Handle the received message (e.g., update UI)
+        }
+      });
+
+      HTML(
+        "[data-schedule-list]",
+        `
+        <p class="text-[var(--light-black)] font-medium">Can not locate!</p>
+      `
+      );
+    }
+  });
+
+  //locationMap("mapIframe");
+};
+export const locationMap = ({ latitude, longitude }) => {
+  const dom = qs("[data-schedule-list]");
+  //dom.src = `https://maps.google.com/maps?q=${latitude},${longitude}&amp;z=15&amp;output=embed`;
+  //dom.src = `https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3641.8344155337977!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMjTCsDA2JzI2LjMiTiA5MMKwMjUnNDYuMyJF!5e0!3m2!1sen!2sbd!4v1703735012335!5m2!1sen!2sbd`;
+  //<iframe src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3641.8344155337977!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMjTCsDA2JzI2LjMiTiA5MMKwMjUnNDYuMyJF!5e0!3m2!1sen!2sbd!4v1703735012335!5m2!1sen!2sbd" width="800" height="400" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allow="geolocation"></iframe>
+  dom.innerHTML = `      
+      <div class="grid gap-2">
+        <span>latitude: ${latitude}, longitude: ${longitude}</span>
+        <a class="underline" target="_blank" href="https://www.google.com/maps/place/${latitude},${longitude}">See in google map</a>
+      </div>
+    `;
 };
 
 //pages/client
+export const printReportCard = async ({ dom, data }) => {
+  let totalHR = await calculateTotalHoursAsync(data);
+
+  const doPromise = new Promise((resolve, reject) => {
+    dom.innerHTML = `
+      <div class="border px-4 py-2 border-[var(--secondary)]">
+        <div class="flex justify-between">
+          <div>
+            <p>
+              Selary: ${totalHR}hr x 
+              $ <input 
+                data-doller-input
+                class="border p-2"
+                type="number"
+                min="0"
+                value="10"
+              />
+              = 
+              <span data-total-selary>$${totalHR * 10}</span> </p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    data.forEach((obj, i) => {
+      const { guardName, contact, totalHour, workDone, workDate, address } =
+        obj;
+
+      dom.innerHTML += `
+        <div class="border px-4 py-2 shadow-sm">
+          <div class="flex justify-between">
+            <div>
+              <p class="text-[var(--light-black)] text-sm font-medium">${workDate}</p>
+            </div>
+
+            <div>             
+              <p class="text-[var(--light-black)] text-sm font-medium">${totalHour}hr</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      if (i + 1 == data.length) {
+        resolve(true);
+      }
+    });
+  });
+
+  let res = await doPromise;
+
+  if (res) {
+    let changeFn = (e) => {
+      let selary = e.target.value * totalHR;
+      qs("[data-total-selary]").innerHTML = `$${selary}`;
+    };
+
+    on("[data-doller-input]", "change", changeFn);
+    on("[data-doller-input]", "keyup", changeFn);
+  }
+};
 export const clientGuardSelectTemp = () => `
   <p class="text-[var(--light-black)] font-medium">
     Please select a guard first!
@@ -752,3 +1038,130 @@ export const clientLoginFormTemp = () => `
           </form>
         </div>
 `;
+export const clientSelectTemp = async ({
+  postSiteSelectDom,
+  guardsDom,
+  clientProDom,
+  contentDom,
+  id,
+  fetchClient,
+}) => {
+  let data = await fetchClient("get-a-client", id);
+  console.log(data);
+
+  clientProDom.innerHTML = `
+    <div class="border border-[var(--secondary)] px-4 py-2 grid">
+      <p class="text-[var(--black)] text-base font-semibold">${data.clientName}</p>
+      <p class="text-[var(--light-black)] text-sm font-medium">${data.contact} | ${data.address}</p>
+    </div>
+  `;
+
+  let postSiteMap = data.postSites.map((obj) => obj);
+  postSiteMap.unshift({ _id: "none", name: "none" });
+
+  let postSiteMapStr = postSiteMap.map((ps) => {
+    return `
+    <option value="${ps._id}">${ps.name}</option>
+    `;
+  });
+  postSiteSelectDom.innerHTML = postSiteMapStr;
+
+  onN(postSiteSelectDom, "change", (e) => {
+    let val = e.target.value;
+    if (val == "none") {
+      qs(".guardMiniProfile").innerHTML = "";
+      guardsDom.innerHTML = ``;
+    } else {
+      qs(".guardMiniProfile").innerHTML = "";
+
+      let guardsMap = data.postSites
+        .filter(({ _id }) => _id == val)[0]
+        .guards.map((obj) => obj);
+      guardsMap.unshift({ _id: "none", guardName: "none" });
+
+      let guardsMapStr = guardsMap.map((grd) => {
+        return `
+    <option value="${grd._id}">${grd.guardName}</option>
+    `;
+      });
+      guardsDom.innerHTML = guardsMapStr;
+    }
+  });
+
+  onN(guardsDom, "change", (e) => {
+    let val = e.target.value;
+
+    if (val != "none") {
+      const btn = `px-4 py-2 font-medium border`;
+
+      let foundGuard = null;
+
+      // Loop through postSites and guards to find the specific guard by ID
+      data.postSites.forEach((postSite) => {
+        const guard = postSite.guards.find((guard) => guard._id === val);
+        if (guard) {
+          foundGuard = guard;
+          return; // Stop iteration once guard is found
+        }
+      });
+
+      if (foundGuard) {
+        let { guardName, address, contact } = foundGuard;
+
+        qs(".guardMiniProfile").innerHTML = `
+        <div class="p-2 border border-[var(--secondary)]">
+          <div>
+            <p class="text-[var(--black)] text-base font-semibold">${guardName}</p>
+            <p class="text-[var(--light-black)] text-sm font-medium">${address} | ${contact}</p>
+          </div>
+        </div>
+      `;
+      }
+
+      contentDom.innerHTML = `
+        <div class="grid gap-2">
+          <div class="flex justify-between items-center border-b pb-4">
+            <div class="flex gap-2 text-[var(--light-black)]">
+              <input type="date" class="border p-2 text-xs" data-date-start />
+              -
+              <input type="date" class="border p-2 text-xs" data-date-end />
+            </div>
+
+            <button data-report-filter-action-btn class="${btn} text-sm bg-[var(--secondary)] text-[var(--white)]">go</button>
+          </div>
+
+          <div data-report-content class="grid gap-4">
+            <p class="text-[var(--light-black)] font-medium">
+              Please select a date range first!
+            </p>
+          </div>
+        </div>
+      `;
+
+      on("[data-report-filter-action-btn]", "click", async () => {
+        let sendObj = {
+          postSiteID: postSiteSelectDom.value,
+          guardID: guardsDom.value,
+          startDate: qs("[data-date-start]").value,
+          endDate: qs("[data-date-end]").value,
+        };
+
+        let res = await fetch(`/admin/client/get/reports`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(sendObj),
+        });
+
+        let data = await res.json();
+
+        data.length > 0 && (qs("[data-report-content]").innerHTML = ``);
+        data.length > 0 &&
+          printReportCard({ dom: qs("[data-report-content]"), data });
+        data.length == 0 &&
+          (qs("[data-report-content]").innerHTML = noDataFoundTemp());
+      });
+    } else {
+      qs(".guardMiniProfile").innerHTML = "";
+    }
+  });
+};

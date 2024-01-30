@@ -11,34 +11,30 @@
   <body>
     <div class="app flex gap-4 relative w-full justify-between hidden">
       <div
-        class="px-4 left-bar sticky top-0 bg-[var(--primary)] w-[340px] h-[100vh] overflow-x-hidden"
+        class="sticky top-0 px-4 left-bar bg-[var(--primary)] w-[340px] h-[100vh] overflow-x-hidden"
       >
         <div class="relative">
-          <div
-            class="flex justify-end search-bar sticky top-0 w-full p-2 backdrop-blur-sm"
-          >
-            <form class="flex">
-              <input
-                type="text"
-                name="siteNameSearch"
-                placeholder="Site name.."
-                class="border px-4 py-2 text-sm w-full"
-              />
-              <button
-                type="submit"
-                class="bg-[var(--secondary)] text-[var(--white)] px-4 py-2 font-medium text-sm"
-              >
-                Search
-              </button>
-            </form>
-          </div>
+          <div class="grid gap-4 search-bar w-full p-2">
+            <div data-client-profile></div>
 
-          <div class="data-guards grid gap-2 py-2"></div>
+            <div class="grid gap-2">
+              <p class="text-[var(--light-black)]">Post Site</p>
+              <select name="postSite" class="p-2"></select>
+
+              <p class="text-[var(--light-black)]">Guard Name</p>
+              <select name="guards" class="p-2"></select>
+
+              <div class="guardMiniProfile"></div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="relative left-bar w-full flex flex-col gap-4">
-        <div class="data-content p-2 flex flex-col gap-4 flex-auto"></div>
+        <div
+          class="data-content p-2 flex flex-col gap-4 flex-auto"
+          data-content
+        ></div>
       </div>
     </div>
 

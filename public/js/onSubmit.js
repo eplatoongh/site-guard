@@ -1,4 +1,4 @@
-import { generateDates } from "./functions.js";
+import { calculateTotalHours, generateDates } from "./functions.js";
 import { submitLoaderEnd, submitLoaderStart } from "./selectors.js";
 
 async function addNameToDB(url, data) {
@@ -85,6 +85,9 @@ export const assignWorkFormSubmit = async (e, This) => {
     clientName,
     contact,
     address,
+    repeatShift,
+    workDone: false,
+    totalHour: Number(calculateTotalHours(obj.startTime, obj.endTime)),
   }));
 
   for (let i = 0; i < Schedule.length; i++) {
@@ -136,12 +139,13 @@ export const clientLoginFormSubmit = async (e, fn) => {
     });
 
     if (res.status == 200) {
+      let data = await res.json();
       submitLoaderEnd(e);
-      return true;
+      return data;
     } else {
       alert(res.statusText);
       submitLoaderEnd(e);
-      return false;
+      return { found: false };
     }
   } else {
     alert("Give a client name first!");

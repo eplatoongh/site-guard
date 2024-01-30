@@ -1,42 +1,33 @@
 import {
-  clientGuardCardTemp,
   clientGuardSelectTemp,
   clientLoginFormTemp,
-  guardReportTemp,
+  clientSelectTemp,
   loaderTemp,
 } from "../../../js/components.js";
-import { clientGuardEventListener } from "../../../js/eventListeners.js";
 import { getData } from "../../../js/fetch.js";
 import { clientLoginFormSubmit } from "../../../js/onSubmit.js";
-import {
-  HTML,
-  addC,
-  addHTML,
-  on,
-  onN,
-  qsa,
-  removeC,
-} from "../../../js/selectors.js";
+import { HTML, addC, on, qs, removeC } from "../../../js/selectors.js";
 import { clientLoaderItems } from "../../../js/vars.js";
 
-async function showClientDashboard(clientName) {
+async function showClientDashboard(clientName, id) {
   clientLoaderItems.forEach((itm) => HTML(itm, loaderTemp()));
-  let guardData = await getData("client-guards", null, null, clientName);
 
-  HTML(".data-guards", "");
-  guardData.forEach((obj) => addHTML(".data-guards", clientGuardCardTemp(obj)));
   HTML(".data-content", clientGuardSelectTemp());
-
-  qsa(".client-gurad").forEach((itm) =>
-    onN(itm, "click", (e) => clientGuardEventListener(e, clientName))
-  );
+  clientSelectTemp({
+    postSiteSelectDom: qs('[name="postSite"]'),
+    guardsDom: qs('[name="guards"]'),
+    clientProDom: qs("[data-client-profile]"),
+    contentDom: qs("[data-content]"),
+    id,
+    fetchClient: getData,
+  });
 }
 
 HTML(".alerts", clientLoginFormTemp());
 on(".client-login-form", "submit", async (e) => {
   e.preventDefault();
-  let res = await clientLoginFormSubmit(e.target);
-  res && (await showClientDashboard(e.target.clientName.value));
-  res && removeC(".app", "hidden");
-  res && addC(".alerts", "hidden");
+  let { found, id } = await clientLoginFormSubmit(e.target);
+  found && (await showClientDashboard(e.target.clientName.value, id));
+  found && removeC(".app", "hidden");
+  found && addC(".alerts", "hidden");
 });

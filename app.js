@@ -1,6 +1,8 @@
 const dotenv = require("dotenv");
 dotenv.config();
 
+const http = require("http");
+const socketIo = require("socket.io");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || "3000";
@@ -10,11 +12,24 @@ const listen = () => {
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
 
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: [
+      "http://127.0.0.1:5500",
+      "http://localhost:8081",
+      "https://site-guard-app.onrender.com",
+      "https://guard-track-site-guard.netlify.app",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
 //local requires
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const { checkUser, requireAuth } = require("./middlewares/auth");
-const Client = require("./models/admin/Client");
 
 //view engine setup
 app.set("view engine", `ejs`);
@@ -35,7 +50,7 @@ const dbURIoptions = {};
   await mongoose.connect(dbURI, dbURIoptions);
   console.log(`DB connected!`);
 
-  app.listen(port, listen);
+  server.listen(port, listen);
 })();
 
 //routes
@@ -47,6 +62,25 @@ app.get("/", (req, res) => {
 
 app.get("/show_users", requireAuth, (req, res) => {
   res.json({ method: "GET", url: "show_users", user: res.locals.user });
+});
+
+// Socket.IO connection handling
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  // Handling events (e.g., 'chat message')
+  socket.on("chat message", (msg) => {
+    io.emit("chat message", msg); // Broadcast the message to all connected clients
+  });
+  // Handling events (e.g., 'chat message')
+  socket.on("btnClicked", (msg) => {
+    io.emit("btnClicked", msg); // Broadcast the message to all connected clients
+  });
+
+  // Handling disconnection
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
 });
 
 //uses

@@ -13,7 +13,7 @@ import {
   siteFormSubmit,
 } from "./onSubmit.js";
 
-export const clientLoaderItems = [".data-guards", ".data-content"];
+export const clientLoaderItems = [".data-content"];
 export const loaderItems = [".data-content", ".input-forms"];
 export const activateItems = [
   // {
@@ -43,6 +43,12 @@ export const activateItems = [
   },
   {
     sl: ".schedule-li",
+    //temp: assignWorkFormTemp,
+    //onSubmit: assignWorkFormSubmit,
+    //formSl: ".assign-work-add-form",
+  },
+  {
+    sl: ".track-guards-li",
     //temp: assignWorkFormTemp,
     //onSubmit: assignWorkFormSubmit,
     //formSl: ".assign-work-add-form",

@@ -6,6 +6,8 @@
     <title>Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="./css/style.css" />
+
+    <script src="/socket.io/socket.io.js"></script>
     <script type="module" src="./js/app.js"></script>
   </head>
   <body>
@@ -45,6 +47,11 @@
             class="schedule-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors"
           >
             Schedule
+          </li>
+          <li
+            class="track-guards-li cursor-pointer font-medium text-[var(--light-black)] bg-[var(--white)] px-4 py-2 hover:bg-[var(--secondary-hover)] hover:text-[var(--black)] transition-colors"
+          >
+            Track Guards
           </li>
         </ul>
       </div>

@@ -14,6 +14,9 @@ const obj = {
   startTime: String,
   endTime: String,
   workDate: String,
+  repeatShift: Array,
+  workDone: Boolean,
+  totalHour: Number,
 };
 
 //schema setup

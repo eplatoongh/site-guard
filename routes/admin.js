@@ -57,6 +57,8 @@ router.post("/if/client/exists", (req, res) =>
 );
 router.post("/post/site/guard/works/add", adminFunctions.postSiteGuardWorkAdd);
 router.post("/schedule/add", adminFunctions.scheduleAdd);
+router.post("/worker/schedule/work/done", adminFunctions.scheduleWorkDone);
+router.post("/client/get/reports", adminFunctions.clientReport);
 
 //delete
 router.delete("/data/site/delete/:id", (req, res) =>
@@ -75,6 +77,7 @@ router.put(
   "/update/client/add/post/site",
   adminFunctions.updateClientAddPostSite
 );
+router.put("/guard/time/report/update", adminFunctions.updateTimeReport);
 
 //exports
 module.exports = router;
