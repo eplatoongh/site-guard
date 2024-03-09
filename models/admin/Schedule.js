@@ -17,6 +17,10 @@ const obj = {
   repeatShift: Array,
   workDone: Boolean,
   totalHour: Number,
+  trackInfo: {
+    type: String,
+    default: "The guard is out of reach!",
+  },
 };
 
 //schema setup

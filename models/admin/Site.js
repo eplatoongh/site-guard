@@ -3,12 +3,10 @@ const Schema = mongoose.Schema;
 
 //schema object
 const obj = {
-  siteName: {
-    type: String,
-    // unique: true,
-    // lowercase: true,
-    // required: [true, "invalid username"],
-  },
+  siteName: String,
+  address: String,
+  contact: String,
+  clientID: String,
 };
 
 //schema setup
